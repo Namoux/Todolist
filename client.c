@@ -75,21 +75,54 @@ int main (int argc, char** argv) {
             perror("select()");  // une erreur s'est produite dans select()
             break;
         } else if (retval == 0) {
+            printf("Que veux tu faire ?\n");
+            printf("1. Ajouter des taches\n");
+            printf("2. Mettre a jour une tache\n");
+            printf("0. Quitter\n");
 
-                char taches[BUFSIZ]; memset (taches, 0, BUFSIZ);
-                printf("Definissez votre tache : \n");
-                fgets(taches, BUFSIZ, stdin); 
+            char choix[BUFSIZ]; memset(choix, 0, BUFSIZ); 
+            fgets(choix, BUFSIZ, stdin); choix[strlen(choix)-1] =0;
 
-                error = send(client_fd, taches, strlen(taches), 0); perror("send ");
-                    if (error == -1) { close(client_fd); return EXIT_FAILURE; }
+            int numero = atoi(choix);
+            // if (numero != 0 || strcmp(choix, "0") == 0) {
+            //     return numero;
+            // }
+            error = send(client_fd, choix, strlen(choix), 0); perror("send ");
+                if (error == -1) { close(client_fd); return EXIT_FAILURE; }
+
+                    if (numero == 1) {
+                        char taches[BUFSIZ]; memset (taches, 0, BUFSIZ);
+                        printf("Definissez votre tache : \n");
+                        fgets(taches, BUFSIZ, stdin); 
+
+                        error = send(client_fd, taches, strlen(taches), 0); perror("send ");
+                            if (error == -1) { close(client_fd); return EXIT_FAILURE; }
+                    } else if (numero == 2) {
+                        printf("Quelle tache veux tu mettre a jour?\n");
+                        char mline[BUFSIZ]; memset( mline, 0, BUFSIZ);
+                        error = recv(client_fd, mline, sizeof(mline) -1, 0); perror("receive ");     
+                            if (error == -1) { return EXIT_FAILURE; }
+                        printf("%s\n", mline);
+                            char choix1[BUFSIZ]; memset(choix1, 0, BUFSIZ); 
+                            fgets(choix1, BUFSIZ, stdin); choix1[strlen(choix1)-1] =0;
+
+                            int numero1 = atoi(choix1);
+                            if (numero1 != 0 || strcmp(choix, "0") == 0) {
+                                return numero1;
+                            }
+
+                        error = send(client_fd, choix1, strlen(choix1), 0); perror("send ");
+                            if (error == -1) { close(client_fd); return EXIT_FAILURE; }
+                    } else if (numero == 0) {
+                        return 0;
+                        } 
         } else {
         error = recv(client_fd, line, sizeof(line) -1, 0); perror("receive ");     
             if (error == -1) { return EXIT_FAILURE; }
         }
         printf("Voici les taches a faire :\n");
         printf("%s\n", line);
-    }   
-
+    }
     close(client_fd); perror("close ");
     return 0;
 }
