@@ -43,11 +43,15 @@ void* pthreadclient (void* arg) {
     } 
     printf ("l'utilisateur %s s'est connecté\n", user_todolist_name);
 
+    /* Creation du chemin du fichier dans une variable */
+    char path[BUFSIZ]; memset(path, 0, BUFSIZ);
+    sprintf(path, "../public/%s", user_todolist_name);
+
     while (1) {
         /**
          * Open personal user todo list as a readonly file descrip
          */
-        FILE* fd = fopen(user_todolist_name, "r+"); perror("fopen r+"); 
+        FILE* fd = fopen(path, "r+"); perror("fopen r+"); 
         if (fd != NULL) { /* Si y a une sauvegarde j'envoi la liste de taches */
             char line[BUFSIZ]; memset(line, 0, BUFSIZ);
             /* Je compte le nombre de lignes dans le fichier */
@@ -95,7 +99,7 @@ void* pthreadclient (void* arg) {
 
         } else {
             /* Create file if it does not exist */
-            fd = fopen(user_todolist_name, "a+"); perror("fopen a+");
+            fd = fopen(path, "a+"); perror("fopen a+");
             printf("Utilisateur inconnu, Nouveau client crée\n"); 
             fclose(fd); perror("fclose a+");
         }
@@ -124,7 +128,7 @@ void* pthreadclient (void* arg) {
             printf ("%d - %s\n",countline, taches);
         
             /* On ecrit sur le fichier la tache au format csv */
-            FILE* fd = fopen(user_todolist_name, "a+");
+            FILE* fd = fopen(path, "a+");
             if (fd != NULL) {
                 fprintf(fd, "%d,%s,%s,0\n", countline, s_now, taches);
                 fclose(fd);
@@ -132,7 +136,7 @@ void* pthreadclient (void* arg) {
         } else if (numero == 2) {
 
             /* Mise a jour de taches, on envoi ce que contient le fichier */
-            FILE* fd = fopen(user_todolist_name, "r+"); perror("fopen r+ : ");
+            FILE* fd = fopen(path, "r+"); perror("fopen r+ : ");
             char countline1[BUFSIZ]; memset(countline1, 0, BUFSIZ);
             sprintf(countline1, "%d", countline);
             error = send(client_fd, countline1, strlen(countline1), 0); perror("send ");
@@ -217,6 +221,15 @@ int main () {
         .sin_addr.s_addr = INADDR_ANY,
         .sin_port = htons(SERVER_PORT)
     };
+
+    int reuse = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
+    #ifdef SO_REUSEPORT
+        if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEPORT, (const char*)&reuse, sizeof(reuse)) < 0) 
+            perror("setsockopt(SO_REUSEPORT) failed");
+    #endif
 
     int error = bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)); perror("bind ");
         if (error == -1) { return EXIT_FAILURE; }
