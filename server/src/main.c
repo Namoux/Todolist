@@ -222,6 +222,7 @@ int main () {
         .sin_port = htons(SERVER_PORT)
     };
 
+    // Reutilise le meme port en empechant le bind : already in use
     int reuse = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse)) < 0)
         perror("setsockopt(SO_REUSEADDR) failed");

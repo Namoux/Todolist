@@ -113,9 +113,7 @@ int main (int argc, char** argv) {
                 char choix1[BUFSIZ]; memset(choix1, 0, BUFSIZ); 
                 fgets(choix1, BUFSIZ, stdin); choix1[strlen(choix1)-1] =0;
 
-                int numero1 = atoi(choix1);
-
-                printf("La tache %d a été mise a jour !\n", choix1);
+                printf("La tache %s a été mise a jour !\n", choix1);
                 error = send(client_fd, choix1, strlen(choix1), 0); perror("send :");
                     if (error == -1) { close(client_fd); return EXIT_FAILURE; }
 
